@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= title %></title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      text-align: center;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1><%= title %></h1>
+
+  <!-- Calendar Table -->
+  <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Tasks</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% tasks.forEach(task => { %>
+        <tr>
+          <td><%= task.date.toDateString() %></td>
+          <td>
+            <ul>
+              <% task.tasks.forEach(t => { %>
+                <li><%= t.description %> - <%= t.status %></li>
+              <% }); %>
+            </ul>
+          </td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</body>
+</html>

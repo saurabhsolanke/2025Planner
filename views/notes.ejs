@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= title %></title>
+</head>
+<body>
+  <h1><%= title %></h1>
+
+  <!-- Notes List -->
+  <ul>
+    <% notes.forEach(note => { %>
+      <li>
+        <h2><%= note.title %></h2>
+        <p><%= note.content %></p>
+        <form action="/notes/delete/<%= note._id %>" method="POST">
+          <button type="submit">Delete</button>
+        </form>
+      </li>
+    <% }); %>
+  </ul>
+
+  <!-- Add New Note -->
+  <form action="/notes/add" method="POST">
+    <input type="text" name="title" placeholder="Note Title" required>
+    <textarea name="content" placeholder="Note Content" required></textarea>
+    <button type="submit">Add Note</button>
+  </form>
+</body>
+</html>
