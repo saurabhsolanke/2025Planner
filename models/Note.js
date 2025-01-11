@@ -11,6 +11,7 @@ const noteSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User' // Optional reference to User model
   },
+  group: { type: String, required: true },
   title: {
     type: String,
     required: true

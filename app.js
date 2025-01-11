@@ -1,7 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const path = require('path');
+const Task = require('./models/Task');
+const Group = require('./models/Group');
 require('dotenv').config();
 
 const trackerRoutes = require('./routes/tracker');
@@ -14,6 +17,145 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Sample data structure to hold tasks
+let tasks = [];
+
+
+// Route to render the calendar page
+app.get('/calendar', async (req, res) => {
+  try {
+    const tasks = await Task.find(); // Retrieve all tasks from MongoDB
+    const selectedDate = req.query.date || new Date().toISOString().split('T')[0]; // Default to today if no date is selected
+    // res.render('calendar', { title: 'Calendar', tasks: tasks });
+    res.render('calendar', { tasks, selectedDate }); // Pass tasks and selectedDate to the template
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// async function getTasksByDate(date) {
+//   try {
+//       // Find tasks for the given date
+//       const tasks = await Task.find({ date: date });
+//       return tasks; // Return the found tasks
+//   } catch (error) {
+//       console.error('Error fetching tasks by date:', error);
+//       return []; // Return an empty array in case of error
+//   }
+// }
+
+// // New API endpoint to get tasks by date
+// app.get('/calendar/:date', (req, res) => {
+//   const dateParam = req.params.date; // Get the date from the URL
+//   console.log(dateParam, "*")
+//   const date = new Date(dateParam); // Convert to Date object
+//   // Fetch tasks from your data source (e.g., database)
+//   // This is a placeholder for your actual data fetching logic
+//   const tasks = getTasksByDate(date); // Implement this function based on your data source
+//   console.log(date, "**");
+//   if (tasks) {
+//     res.status(200).json(tasks);
+//     console.log("status 200");
+//   } else {
+//     res.status(404).json({ message: 'No tasks found for this date.' });
+//   }
+// });
+
+// Route to handle adding a task
+app.post('/calendar/add', async (req, res) => {
+  const { date, task } = req.body;
+  const taskDate = new Date(date);
+
+  try {
+    // Check if a task entry for the date already exists
+    let taskEntry = await Task.findOne({ date: taskDate });
+
+    if (taskEntry) {
+      // If the date exists, push the new task to the existing date's tasks
+      taskEntry.tasks.push({ description: task, status: 'Pending' });
+      await taskEntry.save(); // Save the updated task entry
+    } else {
+      // If the date does not exist, create a new entry
+      taskEntry = new Task({ date: taskDate, tasks: [{ description: task, status: 'Pending' }] });
+      await taskEntry.save(); // Save the new task entry
+    }
+
+    res.redirect('/calendar'); // Redirect back to the calendar page
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to handle editing a task
+app.post('/calendar/edit/:date/:index', async (req, res) => {
+  const { date, index } = req.params;
+  const { description, status } = req.body;
+
+  try {
+    // Convert the date string back to a Date object
+    const taskDate = new Date(date);
+
+    // Find the task entry for the specific date
+    const taskEntry = await Task.findOne({ date: taskDate });
+
+    if (taskEntry) {
+      // Update the specific task using the index
+      taskEntry.tasks[index] = { description, status };
+      await taskEntry.save(); // Save the updated task entry
+    }
+
+    res.redirect('/calendar'); // Redirect back to the calendar page
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to handle deleting a task
+app.post('/calendar/delete/:date/:index', async (req, res) => {
+  const { date, index } = req.params;
+
+  try {
+    // Convert the date string back to a Date object
+    const taskDate = new Date(date);
+
+    // Find the task entry for the specific date
+    const taskEntry = await Task.findOne({ date: taskDate });
+
+    if (taskEntry) {
+      // Remove the task at the specified index
+      taskEntry.tasks.splice(index, 1);
+      await taskEntry.save(); // Save the updated task entry
+    }
+
+    res.redirect('/calendar'); // Redirect back to the calendar page
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Route to handle deleting all tasks for a specific date
+app.post('/calendar/delete-all/:date', async (req, res) => {
+  const { date } = req.params;
+
+  try {
+    // Convert the date string back to a Date object
+    const taskDate = new Date(date);
+
+    // Delete the task entry for the specific date
+    await Task.deleteOne({ date: taskDate });
+
+    res.redirect('/calendar'); // Redirect back to the calendar page
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Internal Server Error');
+  }
+});
 
 // Static files
 app.use(express.static(path.join(__dirname, 'public')));
