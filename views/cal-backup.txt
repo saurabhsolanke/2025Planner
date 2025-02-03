@@ -175,186 +175,191 @@
           </div>
         </div>
       </div>
-      <!-- Modal Structure -->
-      <div id="taskModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white rounded-lg p-6 shadow-lg">
-          <h2 class="text-xl font-bold mb-4">Add Task</h2>
-          <form action="/calendar/add" method="POST" class="mb-6">
-            <div class="flex flex-col md:flex-row md:space-x-4">
-              <input type="date" name="date" value="<%= selectedDate %>" required
-                class="border border-gray-300 p-2 rounded w-full md:w-1/3" readonly>
-              <input type="text" name="task" placeholder="Task Description" required
-                class="border border-gray-300 p-2 rounded w-full md:w-2/3">
-              <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add note</button>
-            </div>
-          </form>
-          <!-- <div class="bg-slate-500" id="taskList"></div> -->
+    </div>
 
-          <% tasks.forEach(task=> { %>
+    <!-- Modal Structure -->
+    <div id="taskModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+      <div class="bg-white rounded-lg p-6 shadow-lg">
+        <h2 class="text-xl font-bold mb-4">Add Task</h2>
+        <form action="/calendar/add" method="POST" class="mb-6">
+          <div class="flex flex-col md:flex-row md:space-x-4">
+            <input type="date" name="date" value="<%= selectedDate %>" required
+              class="border border-gray-300 p-2 rounded w-full md:w-1/3" readonly>
+            <input type="text" name="task" placeholder="Task Description" required
+              class="border border-gray-300 p-2 rounded w-full md:w-2/3">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Add note</button>
+          </div>
+        </form>
+        <div class="bg-slate-500" id="taskList"></div>
+
+        <% tasks.forEach(task=> { %>
+
+          <!-- <p class="bg-slate-600">
+            <%= selectedDate %>*
+          </p>
+          <p class="bg-slate-500">
+            <%= task.date.toISOString().split('T')[0] %>**
+          </p>
+          <p class="bg-slate-400">
+            <%= task.date.toDateString().split('T')[0] %>***
+          </p>
+          <%= task.date.toDateString().split('T')[0] %> -->
+          <% task.tasks.forEach((t, index)=> { %>
             <% if (task.date.toISOString().split('T')[0]===selectedDate) { %>
-              <p class="">
-                <%= task.date.toDateString() %>
+              <p class="bg-green-400">
+                <!-- <%= task.date.toDateString() %> -->
               </p>
-              <% task.tasks.forEach((t, index)=> { %>
-                <li>
-                  <%= t.description %>
-                </li>
+              <p class="bg-green-600">
+                <%= t.description %>
+              </p>
+              <% } %>
                 <% }); %>
-                  <% } %>
-                    <% }); %>
-                      <button onclick="toggleModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
-                        <a>Close</a> </button>
-        </div>
+                  <% }); %>
+                    <button onclick="toggleModal()" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                      <a>Close</a> </button>
       </div>
     </div>
-    <script>
-      function openModalWithDate(year, month, day) {
-        const dateInput = document.querySelector('input[name="date"]');
-        const formattedDate = new Date(year, month, day + 1).toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-        console.log("this is formatted daete", formattedDate);
-        dateInput.value = formattedDate;
+  </div>
+  <script>
+    function openModalWithDate(year, month, day) {
+      const dateInput = document.querySelector('input[name="date"]');
+      const formattedDate = new Date(year, month, day + 1).toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+      console.log("this is formatted daete", formattedDate);
+      dateInput.value = formattedDate;
+      // Add query parameter to the URL
+      const currentUrl = new URL(window.location.href);
+      currentUrl.searchParams.set('date', formattedDate); // Set the date query parameter
+      window.history.pushState({}, '', currentUrl); // Update the URL without reloading
 
-        // Add query parameter to the URL
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('date', formattedDate); // Set the date query parameter
-        window.history.pushState({}, '', currentUrl); // Update the URL without reloading
+      // Call the API to get tasks for the selected date
+      // fetch(`/calendar/?date=${formattedDate}`)
+      //   .then(response => {
+      //     // Check if the response is OK (status in the range 200-299)
+      //     if (!response.ok) {
+      //       throw new Error(`HTTP error! status: ${response.status}`);
+      //     }
+      //     // Check if the response is JSON
+      //     const contentType = response.headers.get("content-type");
+      //     if (!contentType || !contentType.includes("application/json")) {
+      //       throw new Error("Received non-JSON response");
+      //     }
+      //     return response.json();
+      //   })
+      //   .then(data => {
+      //     console.log('Data received from API:', data);
+      //     updateModalContent(data);
+      //   })
+      //   .catch(error => {
+      //     console.error('There was a problem with the fetch operation:', error);
+      //   });
 
-        // Call the API to get tasks for the selected date
-        // fetch(`/calendar/?date=${formattedDate}`)
-        //   .then(response => {
-        //     // Check if the response is OK (status in the range 200-299)
-        //     if (!response.ok) {
-        //       throw new Error(`HTTP error! status: ${response.status}`);
-        //     }
-        //     // Check if the response is JSON
-        //     const contentType = response.headers.get("content-type");
-        //     if (!contentType || !contentType.includes("application/json")) {
-        //       throw new Error("Received non-JSON response");
-        //     }
-        //     return response.json();
-        //   })
-        //   .then(data => {
-        //     console.log('Data received from API:', data);
-        //     updateModalContent(data);
-        //   })
-        //   .catch(error => {
-        //     console.error('There was a problem with the fetch operation:', error);
-        //   });
+      toggleModal();
+    }
 
-        toggleModal();
+    function updateModalContent(tasks) {
+      const taskList = document.getElementById('taskList'); // Ensure this element exists
+      if (!taskList) {
+        console.error('Element with ID "taskList" not found.');
+        return; // Exit if the element is not found
       }
 
-      // function updateModalContent(tasks) {
-      //   const taskList = document.getElementById('taskList'); // Ensure this element exists
-      //   if (!taskList) {
-      //     console.error('Element with ID "taskList" not found.');
-      //     return; // Exit if the element is not found
-      //   }
+      taskList.innerHTML = ''; // Clear previous tasks
 
-      //   taskList.innerHTML = ''; // Clear previous tasks
-
-      //   // Check if tasks is an array
-      //   if (!Array.isArray(tasks)) {
-      //     console.error('Expected tasks to be an array, but got:', tasks);
-      //     taskList.innerHTML = '<p>Error: Invalid data received.</p>';
-      //     return; // Exit if tasks is not an array
-      //   }
-
-      //   if (tasks.length === 0) {
-      //     taskList.innerHTML = '<p>No tasks found for this date.</p>';
-      //   } else {
-      //     tasks.forEach(task => {
-      //       const taskItem = document.createElement('div');
-      //       taskItem.textContent = `${task.description} - ${task.status}`; // Adjust based on your task structure
-      //       taskList.appendChild(taskItem);
-      //     });
-      //   }
-      // }
-
-      function toggleModal1() {
-        setTimeout(() => {
-          location.reload();
-        }, 500);
+      // Check if tasks is an array
+      if (!Array.isArray(tasks)) {
+        console.error('Expected tasks to be an array, but got:', tasks);
+        taskList.innerHTML = '<p>Error: Invalid data received.</p>';
+        return; // Exit if tasks is not an array
       }
 
-      function toggleModal() {
-        const modal = document.getElementById('taskModal');
-        modal.classList.toggle('hidden');
-        // If the modal is being closed, remove the date parameter from the URL
-        if (modal.classList.contains('hidden')) {
-          const currentUrl = new URL(window.location.href);
-          currentUrl.searchParams.delete('date'); // Remove the 'date' parameter
-          window.history.pushState({}, '', currentUrl);
-        }
-        // location.reload();
-      }
-
-      const calendarDays = document.getElementById('calendarDays');
-      const currentMonth = document.getElementById('currentMonth');
-      const prevMonth = document.getElementById('prevMonth');
-      const nextMonth = document.getElementById('nextMonth');
-
-      let date = new Date();
-
-      function renderCalendar() {
-        // Get current year and month
-        const year = date.getFullYear();
-        const month = date.getMonth();
-
-        // Set the current month and year in the header
-        currentMonth.textContent = new Date(year, month).toLocaleString('default', {
-          month: 'long',
-          year: 'numeric'
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<p>No tasks found for this date.</p>';
+      } else {
+        tasks.forEach(task => {
+          const taskItem = document.createElement('div');
+          taskItem.textContent = `${task.description} - ${task.status}`; // Adjust based on your task structure
+          taskList.appendChild(taskItem);
         });
+      }
+    }
 
-        // Clear previous calendar days
-        calendarDays.innerHTML = '';
+    function toggleModal() {
+      const modal = document.getElementById('taskModal');
+      modal.classList.toggle('hidden');
+      // If the modal is being closed, remove the date parameter from the URL
+      if (modal.classList.contains('hidden')) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.delete('date'); // Remove the 'date' parameter
+        window.history.pushState({}, '', currentUrl);
+      }
+      // location.reload();
+    }
+    const calendarDays = document.getElementById('calendarDays');
+    const currentMonth = document.getElementById('currentMonth');
+    const prevMonth = document.getElementById('prevMonth');
+    const nextMonth = document.getElementById('nextMonth');
 
-        // Get the first day of the month and the total days in the month
-        const firstDay = new Date(year, month, 1).getDay(); // Day of week (0-6, Sun=0)
-        const totalDays = new Date(year, month + 1, 0).getDate(); // Last day of the month
+    let date = new Date();
 
-        // Adjust firstDay to make Monday the start of the week
-        const adjustedFirstDay = (firstDay === 0 ? 6 : firstDay - 1);
+    function renderCalendar() {
+      // Get current year and month
+      const year = date.getFullYear();
+      const month = date.getMonth();
 
-        // Get today's date
-        const today = new Date();
-        const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+      // Set the current month and year in the header
+      currentMonth.textContent = new Date(year, month).toLocaleString('default', {
+        month: 'long',
+        year: 'numeric'
+      });
 
-        // Add blank days for the first row before the 1st of the month
-        for (let i = 0; i < adjustedFirstDay; i++) {
-          calendarDays.innerHTML += `<div></div>`;
-        }
+      // Clear previous calendar days
+      calendarDays.innerHTML = '';
 
-        // Inside your renderCalendar function, where you generate the calendar days
-        for (let day = 1; day <= totalDays; day++) {
-          // Check if this day is today
-          const isToday = isCurrentMonth && today.getDate() === day;
-          calendarDays.innerHTML += `
+      // Get the first day of the month and the total days in the month
+      const firstDay = new Date(year, month, 1).getDay(); // Day of week (0-6, Sun=0)
+      const totalDays = new Date(year, month + 1, 0).getDate(); // Last day of the month
+
+      // Adjust firstDay to make Monday the start of the week
+      const adjustedFirstDay = (firstDay === 0 ? 6 : firstDay - 1);
+
+      // Get today's date
+      const today = new Date();
+      const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
+
+      // Add blank days for the first row before the 1st of the month
+      for (let i = 0; i < adjustedFirstDay; i++) {
+        calendarDays.innerHTML += `<div></div>`;
+      }
+
+      // Inside your renderCalendar function, where you generate the calendar days
+      for (let day = 1; day <= totalDays; day++) {
+        // Check if this day is today
+        const isToday = isCurrentMonth && today.getDate() === day;
+        calendarDays.innerHTML += `
     <div class="py-2 rounded ${isToday ? 'bg-blue-500 text-white font-bold' : 'bg-gray-100 hover:bg-blue-200 cursor-pointer'}" 
          onclick="openModalWithDate(${year}, ${month}, ${day})">
       ${day}
     </div>`;
-        }
-        // Add blank days at the end to fill the 7x5 grid
-        const totalCells = adjustedFirstDay + totalDays;
-        const remainingCells = 7 * 5 - totalCells; // Total cells in a 7x5 grid is 35
-        for (let i = 0; i < remainingCells; i++) {
-          calendarDays.innerHTML += `<div></div>`;
-        }
       }
-      // Event listeners for navigation buttons
-      prevMonth.addEventListener('click', () => {
-        date.setMonth(date.getMonth() - 1);
-        renderCalendar();
-      });
-      nextMonth.addEventListener('click', () => {
-        date.setMonth(date.getMonth() + 1);
-        renderCalendar();
-      });
-      // Initial render
+      // Add blank days at the end to fill the 7x5 grid
+      const totalCells = adjustedFirstDay + totalDays;
+      const remainingCells = 7 * 5 - totalCells; // Total cells in a 7x5 grid is 35
+      for (let i = 0; i < remainingCells; i++) {
+        calendarDays.innerHTML += `<div></div>`;
+      }
+    }
+    // Event listeners for navigation buttons
+    prevMonth.addEventListener('click', () => {
+      date.setMonth(date.getMonth() - 1);
       renderCalendar();
-    </script>
+    });
+    nextMonth.addEventListener('click', () => {
+      date.setMonth(date.getMonth() + 1);
+      renderCalendar();
+    });
+    // Initial render
+    renderCalendar();
+  </script>
 </body>
 
 </html>

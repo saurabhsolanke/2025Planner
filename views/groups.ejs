@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Groups</title>
+  <link href="/styles.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <h1>Groups</h1>
+  <form action="/groups/add" method="POST">
+    <input type="text" name="name" placeholder="Group Name" required>
+    <button type="submit">Add Group</button>
+  </form>
+  <ul>
+    <% groups.forEach(group => { %>
+      <li>
+        <h2><%= group.name %></h2>
+        <ul>
+          <% group.notes.forEach(note => { %>
+            <li><%= note.title %> - <%= note.content %></li>
+          <% }); %>
+        </ul>
+      </li>
+    <% }); %>
+  </ul>
+</body>
+</html>

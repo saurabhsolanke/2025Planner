@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Note</title>
+  <link href="/styles.css" rel="stylesheet"> <!-- Ensure this path is correct -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+</head>
+
+<body>
+  <div
+    class="flex w-full flex-col justify-between rounded-lg bg-white px-6 py-5 shadow-lg dark:bg-zinc-900 dark:shadow-black/5 lg:flex-row lg:items-center">
+    <!-- logo -->
+    <div class="flex items-center">
+      <div class="flex h-10 w-10 items-center text-lg font-bold text-gray-700 dark:text-zinc-500">
+        <!-- <img class="h-full w-full"
+        src="https://res.cloudinary.com/pranav1421/image/upload/v1652785994/Tailwind-Component-library/Logo/tailwind-css_yizuxw.svg"
+        alt="" /> -->
+        <span class="px-2"> <a href="/">keepUp</a> </span>
+      </div>
+      <div class="flex w-full justify-end">
+        <a class="block lg:hidden">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-700 dark:text-zinc-700" fill="none"
+            viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </a>
+      </div>
+    </div>
+    <!-- nav items -->
+    <div class="">
+      <div class="" id="navigation">
+        <ul class="mt-2 flex flex-col gap-2 font-medium text-gray-700 dark:text-zinc-400 lg:mt-0 lg:flex-row lg:gap-4">
+          <li><a href="/calendar" class="text-sky-700">Diary</a></li>
+          <li><a href="/notes" class="hover:text-sky-700">Notes</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="bg-gray-100 p-6">
+
+    <h1 class="text-3xl font-bold mb-4">Edit Note</h1>
+    <a href="/notes" class="text-blue-500 underline mt-4 inline-block">Back to Notes</a>
+    <form action="/notes/update/<%= note._id %>" method="POST" class="bg-white p-6 rounded shadow">
+      <input type="text" name="title" value="<%= note.title %>" class="border border-gray-300 p-2 rounded w-full mb-4"
+        required>
+      <textarea name="content" class="border border-gray-300 p-2 rounded w-full mb-4"
+        required><%= note.content %></textarea>
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Update</button>
+    </form>
+  </div>
+</body>
+
+</html>

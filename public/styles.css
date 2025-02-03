@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.switch {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    text-align: center;
+    overflow: hidden;
+  }
+  .switch-input {
+    position: absolute;
+    left: -9999em;
+    opacity: 0;
+    line-height: 0;
+    width: 0;
+    height: 0;
+    font-size: 0;
+    color: transparent;
+  }
+  .switch-circle {
+    z-index: 9;
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    width: 100px;
+    height: 50px;
+    border-radius: 25px;
+    transition: all .4s ease;
+    cursor: pointer;
+    background-color: #ccc;
+  }
+  .switch-button {
+    z-index: 10;
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all .4s ease;
+    background: #fff;
+    box-shadow: 1px 1px 2px #ccc;
+  }
+  .switch-input:checked ~ .switch-button {
+    background: #fff;
+    left: 50px;
+    box-shadow: -1px 1px 2px #ccc;
+  }
+  .switch-input:checked ~ .switch-circle {
+    transition: all .4s ease;
+    background-color: lightgreen;
+  }
+  
