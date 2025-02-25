@@ -6,6 +6,9 @@ const path = require('path');
 const Task = require('./models/Task');
 const Group = require('./models/Group');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const authMiddleware = require('./middleware/authMiddleware')
 require('dotenv').config();
 
 const trackerRoutes = require('./routes/tracker');
@@ -39,70 +42,42 @@ const User = mongoose.model('User', userSchema);
 // Login route
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
-
   try {
-      // Find user in database
-      const user = await User.findOne({ username });
-
-      if (!user) {
-          return res.status(401).json({
-              success: false,
-              message: 'User not found'
-          });
-      }
-
-      // In a real application, you should hash passwords and compare hashed values
-      if (user.password === password) {
-          res.json({
-              success: true,
-              message: 'Login successful'
-          });
-      } else {
-          res.status(401).json({
-              success: false,
-              message: 'Invalid credentials'
-          });
-      }
+    const user = await User.findOne({ username });
+    if (!user) return res.status(401).json({ success: false, message: 'User not found' });
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ success: true, message: 'Login successful', token });
   } catch (error) {
-      res.status(500).json({
-          success: false,
-          message: 'Server error',
-          error: error.message
-      });
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
 
 // Registration route
 app.post('/register', async (req, res) => {
-  console.log('***********************************************Request received:', req.body); // Log incoming request
-
   const { username, password } = req.body;
 
   try {
-      const existingUser = await User.findOne({ username });
-      if (existingUser) {
-          console.log('Username already exists:', username); // Log existing user
-          return res.status(400).json({
-              success: false,
-              message: 'Username already exists'
-          });
-      }
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: 'Username and password are required' });
+    }
 
-      const user = new User({ username, password });
-      await user.save();
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: 'Username already exists' });
+    }
 
-      console.log('User registered successfully:', user); // Log success
-      res.status(201).json({
-          success: true,
-          message: 'User registered successfully'
-      });
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = new User({ username, password: hashedPassword });
+    await newUser.save();
+
+    // Generate JWT token
+    const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.status(201).json({ success: true, message: 'User registered successfully', token });
   } catch (error) {
-      console.error('Error occurred:', error.message); // Log errors
-      res.status(500).json({
-          success: false,
-          message: 'Server error',
-          error: error.message
-      });
+    res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
 });
 
@@ -119,14 +94,13 @@ app.post('/register', async (req, res) => {
 //   }
 // });
 
-app.get('/calendar', async (req, res) => {
+app.get('/calendar', authMiddleware, async (req, res) => {
   try {
-    const selectedDate = req.query.date || new Date().toISOString().split('T')[0];
-    const tasks = await Task.find();
-    res.json({ tasks, selectedDate });
+    const userId = req.user.userId;
+    const tasks = await Task.find({ user: userId });
+    res.json({ success: true, tasks });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
@@ -178,51 +152,41 @@ app.get('/calendar', async (req, res) => {
 //   }
 // });
 
-app.post('/calendar/add', async (req, res) => {
+app.post('/calendar/add', authMiddleware, async (req, res) => {
   const { date, task } = req.body;
-  const taskDate = new Date(date);
+  const userId = req.user.userId; // Get user ID from JWT
   try {
-    let taskEntry = await Task.findOne({ date: taskDate });
+    let taskEntry = await Task.findOne({ user: userId, date });
     if (taskEntry) {
       taskEntry.tasks.push({ description: task, status: 'Pending' });
-      await taskEntry.save();
     } else {
-      taskEntry = new Task({
-        date: taskDate,
-        tasks: [{ description: task, status: 'Pending' }]
-      });
-      await taskEntry.save();
+      taskEntry = new Task({ user: userId, date, tasks: [{ description: task, status: 'Pending' }] });
     }
+    await taskEntry.save();
     res.json({ success: true, task: taskEntry });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
 // Edit task endpoint
-app.put('/calendar/edit', async (req, res) => {
+app.put('/calendar/edit', authMiddleware, async (req, res) => {
   const { date, taskId, newDescription } = req.body;
-  const taskDate = new Date(date);
-  
+  const userId = req.user.userId;
+
   try {
-    const taskEntry = await Task.findOne({ date: taskDate });
-    if (!taskEntry) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
+    const taskEntry = await Task.findOne({ user: userId, date });
+    if (!taskEntry) return res.status(404).json({ success: false, message: 'Task not found' });
 
     const taskToUpdate = taskEntry.tasks.id(taskId);
-    if (!taskToUpdate) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
+    if (!taskToUpdate) return res.status(404).json({ success: false, message: 'Task not found' });
 
     taskToUpdate.description = newDescription;
     await taskEntry.save();
 
     res.json({ success: true, task: taskEntry });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 
@@ -230,7 +194,7 @@ app.put('/calendar/edit', async (req, res) => {
 app.delete('/calendar/delete', async (req, res) => {
   const { date, taskId } = req.body;
   const taskDate = new Date(date);
-  
+
   try {
     const taskEntry = await Task.findOne({ date: taskDate });
     if (!taskEntry) {
@@ -245,7 +209,7 @@ app.delete('/calendar/delete', async (req, res) => {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-}); 
+});
 
 // Route to handle editing a task
 app.post('/calendar/edit/:date/:index', async (req, res) => {
