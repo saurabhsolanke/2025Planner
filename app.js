@@ -17,12 +17,22 @@ const calendarRoutes = require('./routes/calendar');
 
 const app = express();
 // CORS Middleware - Add this before other middleware
-app.use(cors({
-  origin: ['http://localhost:3000'], // Add your frontend URL
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+// app.use(cors({
+//   origin: ['http://localhost:3000', 'https://2025-planner-eight.vercel.app'],
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   optionsSuccessStatus: 200
+// }));
+const corsOptions = {
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'], // Allow local dev and deployed frontend
+  credentials: true, // Allow cookies and authorization headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'] // Allowed headers
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  optionsSuccessStatus: 200 // Handle preflight response
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Middleware
 app.use(express.json());
@@ -48,7 +58,7 @@ app.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Invalid credentials' });
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ success: true, message: 'Login successful', token });
+    res.json({ success: true, message: 'Login successful', token, username });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Server error', error: error.message });
   }
@@ -298,7 +308,8 @@ app.get('/', (req, res) => {
 
 // Connect to MongoDB and start server
 const PORT = process.env.PORT || 8000;
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+// mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log('Connected to MongoDB');
     app.listen(PORT, () => {
