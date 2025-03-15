@@ -25,7 +25,7 @@ const app = express();
 //   optionsSuccessStatus: 200
 // }));
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002'], // Allow local dev and deployed frontend
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://192.168.29.247:3000','https://fe25calendar-git-main-saurabhs-projects-044c6bd6.vercel.app/', 'https://fe25calendar.vercel.app/'], // Allow local dev and deployed frontend
   credentials: true, // Allow cookies and authorization headers
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
