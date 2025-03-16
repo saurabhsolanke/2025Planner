@@ -24,13 +24,38 @@ const app = express();
 //   allowedHeaders: ['Content-Type', 'Authorization'],
 //   optionsSuccessStatus: 200
 // }));
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://192.168.29.247:3000',
+  'https://fe25calendar.vercel.app',
+  'https://fe25calendar-git-main-saurabhs-projects-044c6bd6.vercel.app',
+  'https://fe25calendar-fnkn6wk8j-saurabhs-projects-044c6bd6.vercel.app'
+];
+
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://192.168.29.247:3000', 'https://fe25calendar-git-main-saurabhs-projects-044c6bd6.vercel.app', 'https://fe25calendar.vercel.app'], // Allow local dev and deployed frontend
-  credentials: true, // Allow cookies and authorization headers
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  optionsSuccessStatus: 200 // Handle preflight response
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS not allowed'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 };
+// const corsOptions = {
+//   origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://192.168.29.247:3000', 
+//   'https://fe25calendar-git-main-saurabhs-projects-044c6bd6.vercel.app', 'https://fe25calendar.vercel.app'],
+//   credentials: true,
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   optionsSuccessStatus: 200
+// };
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
@@ -47,6 +72,12 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true }
 });
+
+app.use((req, res, next) => {
+  console.log(`Request Method: ${req.method}, URL: ${req.url}, Origin: ${req.headers.origin}`);
+  next();
+});
+
 
 const User = mongoose.model('User', userSchema);
 // Login route
